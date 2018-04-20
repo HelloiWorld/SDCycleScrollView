@@ -36,6 +36,11 @@
 #import <UIKit/UIKit.h>
 
 typedef enum {
+    SDCycleScrollViewTypeFullScreen,
+    SDCycleScrollViewTypeZoomInOut
+} SDCycleScrollViewType;
+
+typedef enum {
     SDCycleScrollViewPageContolAlimentRight,
     SDCycleScrollViewPageContolAlimentCenter
 } SDCycleScrollViewPageContolAliment;
@@ -93,7 +98,6 @@ typedef enum {
 /** 本地图片轮播初始化方式2,infiniteLoop:是否无限循环 */
 + (instancetype)cycleScrollViewWithFrame:(CGRect)frame shouldInfiniteLoop:(BOOL)infiniteLoop imageNamesGroup:(NSArray *)imageNamesGroup;
 
-
 //////////////////////  数据源API //////////////////////
 
 /** 网络图片 url string 数组 */
@@ -106,7 +110,8 @@ typedef enum {
 @property (nonatomic, strong) NSArray *localizationImageNamesGroup;
 
 
-
+/** 样式，默认为全屏样式，可重设为ZoomInOut样式 */
+@property (nonatomic, assign) SDCycleScrollViewType cycleScrollViewType;
 
 
 //////////////////////  滚动控制API //////////////////////

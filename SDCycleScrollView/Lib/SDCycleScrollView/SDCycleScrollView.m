@@ -35,13 +35,14 @@
 #import "TAPageControl.h"
 #import "SDWebImageManager.h"
 #import "UIImageView+WebCache.h"
+#import "UIImage+Scale.h"
+#import "ZKCollectionViewLayout.h"
 
-#define kCycleScrollViewInitialPageControlDotSize CGSizeMake(10, 10)
+#define kCycleScrollViewInitialPageControlDotSize CGSizeMake(8, 8)
 
 NSString * const ID = @"SDCycleScrollViewCell";
 
 @interface SDCycleScrollView () <UICollectionViewDataSource, UICollectionViewDelegate>
-
 
 @property (nonatomic, weak) UICollectionView *mainView; // 显示图片的collectionView
 @property (nonatomic, weak) UICollectionViewFlowLayout *flowLayout;
@@ -51,6 +52,10 @@ NSString * const ID = @"SDCycleScrollViewCell";
 @property (nonatomic, weak) UIControl *pageControl;
 
 @property (nonatomic, strong) UIImageView *backgroundImageView; // 当imageURLs为空时的背景图
+
+@property (nonatomic, assign) CGFloat itemSizeWidthOffset;  // 宽度相比全屏时的偏移量
+@property (nonatomic, assign) CGFloat itemSizeHeightOffset;  // 高度相比全屏时的偏移量
+@property (nonatomic, assign) CGFloat cellImageLayerCornerRadius; // cell弧度
 
 @end
 
@@ -74,8 +79,8 @@ NSString * const ID = @"SDCycleScrollViewCell";
 
 - (void)initialization
 {
-    _pageControlAliment = SDCycleScrollViewPageContolAlimentCenter;
-    _autoScrollTimeInterval = 2.0;
+    _pageControlAliment = SDCycleScrollViewPageContolAlimentRight;
+    _autoScrollTimeInterval = 3.0;
     _titleLabelTextColor = [UIColor whiteColor];
     _titleLabelTextFont= [UIFont systemFontOfSize:14];
     _titleLabelBackgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
@@ -86,14 +91,19 @@ NSString * const ID = @"SDCycleScrollViewCell";
     _showPageControl = YES;
     _pageControlDotSize = kCycleScrollViewInitialPageControlDotSize;
     _pageControlBottomOffset = 0;
-    _pageControlRightOffset = 0;
+    _pageControlRightOffset = 8;
     _pageControlStyle = SDCycleScrollViewPageContolStyleClassic;
     _hidesForSinglePage = YES;
-    _currentPageDotColor = [UIColor whiteColor];
-    _pageDotColor = [UIColor lightGrayColor];
+    _currentPageDotColor = [UIColor colorWithRed:57/255.0 green:203/255.0 blue:138/255.0 alpha:1.0];
+    _pageDotColor = [UIColor whiteColor];
     _bannerImageViewContentMode = UIViewContentModeScaleToFill;
     
-    self.backgroundColor = [UIColor lightGrayColor];
+    _scrollDirection = UICollectionViewScrollDirectionHorizontal;
+    _itemSizeWidthOffset = 32.f;
+    _itemSizeHeightOffset = 8.f;
+    _cellImageLayerCornerRadius = 6.f;
+    
+    self.backgroundColor = [UIColor clearColor];
     
 }
 
@@ -128,12 +138,39 @@ NSString * const ID = @"SDCycleScrollViewCell";
     return cycleScrollView;
 }
 
+- (void)setCycleScrollViewType:(SDCycleScrollViewType)cycleScrollViewType {
+    _cycleScrollViewType = cycleScrollViewType;
+    switch (cycleScrollViewType) {
+        case SDCycleScrollViewTypeFullScreen: {
+            UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
+            flowLayout.minimumLineSpacing = 0;
+            flowLayout.scrollDirection = _scrollDirection;
+            _flowLayout = flowLayout;
+            _mainView.collectionViewLayout = flowLayout;
+            [_mainView reloadData];
+        }
+            break;
+            
+        case SDCycleScrollViewTypeZoomInOut:{
+            ZKCollectionViewLayout *customLayout = [[ZKCollectionViewLayout alloc] initWithItemSize:CGSizeMake(self.bounds.size.width - _itemSizeWidthOffset, self.bounds.size.height - _itemSizeHeightOffset)];
+            customLayout.scrollDirection = _scrollDirection;
+            // 偷梁换柱，强转并不会实际生效
+            _flowLayout = (UICollectionViewFlowLayout*)customLayout;
+            _mainView.collectionViewLayout = customLayout;
+            _mainView.pagingEnabled = NO; //开启此属性会导致targetContentOffsetForProposedContentOffset偏移失效
+//            self.infiniteLoop = NO;   //不建议开启无限循环，效果怪怪的
+            [_mainView reloadData];
+        }
+            break;
+    }
+}
+
 // 设置显示图片的collectionView
 - (void)setupMainView
 {
     UICollectionViewFlowLayout *flowLayout = [[UICollectionViewFlowLayout alloc] init];
     flowLayout.minimumLineSpacing = 0;
-    flowLayout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+    flowLayout.scrollDirection = _scrollDirection;
     _flowLayout = flowLayout;
     
     UICollectionView *mainView = [[UICollectionView alloc] initWithFrame:self.bounds collectionViewLayout:flowLayout];
@@ -442,11 +479,27 @@ NSString * const ID = @"SDCycleScrollViewCell";
     if (targetIndex >= _totalItemsCount) {
         if (self.infiniteLoop) {
             targetIndex = _totalItemsCount * 0.5;
-            [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
+//            [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
+            [self scrollToItemAtIndex:targetIndex animated:NO];
         }
         return;
     }
-    [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
+    
+//    [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
+    [self scrollToItemAtIndex:targetIndex animated:YES];
+}
+
+- (void)scrollToItemAtIndex:(int)targetIndex animated:(BOOL)animated
+{
+    if (_scrollDirection == UICollectionViewScrollDirectionHorizontal) {
+        CGFloat cellWidth = _flowLayout.itemSize.width;
+        CGRect visibleRect = CGRectMake(cellWidth * targetIndex, 0, cellWidth, CGRectGetHeight(_mainView.frame));;
+        [self.mainView scrollRectToVisible:visibleRect animated:animated];
+    } else {
+        CGFloat cellHeight = _flowLayout.itemSize.height;
+        CGRect visibleRect = CGRectMake(0, cellHeight * targetIndex, CGRectGetWidth(_mainView.frame), cellHeight);;
+        [self.mainView scrollRectToVisible:visibleRect animated:animated];
+    }
 }
 
 - (int)currentIndex
@@ -488,7 +541,7 @@ NSString * const ID = @"SDCycleScrollViewCell";
     
     [super layoutSubviews];
     
-    _flowLayout.itemSize = self.frame.size;
+    _flowLayout.itemSize = _cycleScrollViewType == SDCycleScrollViewTypeFullScreen ? self.frame.size : CGSizeMake(self.frame.size.width - _itemSizeWidthOffset, self.frame.size.height - _itemSizeHeightOffset);
     
     _mainView.frame = self.bounds;
     if (_mainView.contentOffset.x == 0 &&  _totalItemsCount) {
@@ -498,7 +551,9 @@ NSString * const ID = @"SDCycleScrollViewCell";
         }else{
             targetIndex = 0;
         }
-        [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
+        // 这里会导致首屏偏移量不正确，故首屏不展示最后一张图片了
+//        [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
+        [self scrollToItemAtIndex:targetIndex animated:NO];
     }
     
     CGSize size = CGSizeZero;
@@ -552,9 +607,10 @@ NSString * const ID = @"SDCycleScrollViewCell";
 
 - (void)adjustWhenControllerViewWillAppera
 {
-    long targetIndex = [self currentIndex];
+    int targetIndex = [self currentIndex];
     if (targetIndex < _totalItemsCount) {
-        [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
+//        [_mainView scrollToItemAtIndexPath:[NSIndexPath indexPathForItem:targetIndex inSection:0] atScrollPosition:UICollectionViewScrollPositionNone animated:NO];
+        [self scrollToItemAtIndex:targetIndex animated:NO];
     }
 }
 
@@ -584,18 +640,22 @@ NSString * const ID = @"SDCycleScrollViewCell";
     
     NSString *imagePath = self.imagePathsGroup[itemIndex];
     
+    // 强制使cell定位，防止图片裁剪时imageView frame不对的问题
+    [cell layoutIfNeeded];
     if (!self.onlyDisplayText && [imagePath isKindOfClass:[NSString class]]) {
         if ([imagePath hasPrefix:@"http"]) {
-            [cell.imageView sd_setImageWithURL:[NSURL URLWithString:imagePath] placeholderImage:self.placeholderImage];
+            [cell.imageView sd_setImageWithURL:[NSURL URLWithString:imagePath] placeholderImage:self.placeholderImage completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+                cell.imageView.image = [image centerCutWithImageView:cell.imageView];
+            }];
         } else {
             UIImage *image = [UIImage imageNamed:imagePath];
             if (!image) {
                 image = [UIImage imageWithContentsOfFile:imagePath];
             }
-            cell.imageView.image = image;
+            cell.imageView.image = [image centerCutWithImageView:cell.imageView];
         }
     } else if (!self.onlyDisplayText && [imagePath isKindOfClass:[UIImage class]]) {
-        cell.imageView.image = (UIImage *)imagePath;
+        cell.imageView.image = [(UIImage *)imagePath centerCutWithImageView:cell.imageView];
     }
     
     if (_titlesGroup.count && itemIndex < _titlesGroup.count) {
@@ -609,6 +669,10 @@ NSString * const ID = @"SDCycleScrollViewCell";
         cell.titleLabelTextColor = self.titleLabelTextColor;
         cell.titleLabelTextFont = self.titleLabelTextFont;
         cell.hasConfigured = YES;
+        if (_cycleScrollViewType == SDCycleScrollViewTypeZoomInOut) {
+            cell.imageView.layer.cornerRadius = _cellImageLayerCornerRadius;
+            cell.imageView.layer.masksToBounds = YES;
+        }
         cell.imageView.contentMode = self.bannerImageViewContentMode;
         cell.clipsToBounds = YES;
         cell.onlyDisplayText = self.onlyDisplayText;
