@@ -35,7 +35,6 @@
 #import "TAPageControl.h"
 #import "SDWebImageManager.h"
 #import "UIImageView+WebCache.h"
-#import "UIImage+Scale.h"
 #import "ZKCollectionViewLayout.h"
 
 #define kCycleScrollViewInitialPageControlDotSize CGSizeMake(8, 8)
@@ -55,7 +54,6 @@ NSString * const ID = @"SDCycleScrollViewCell";
 
 @property (nonatomic, assign) CGFloat itemSizeWidthOffset;  // 宽度相比全屏时的偏移量
 @property (nonatomic, assign) CGFloat itemSizeHeightOffset;  // 高度相比全屏时的偏移量
-@property (nonatomic, assign) CGFloat cellImageLayerCornerRadius; // cell弧度
 
 @end
 
@@ -96,12 +94,11 @@ NSString * const ID = @"SDCycleScrollViewCell";
     _hidesForSinglePage = YES;
     _currentPageDotColor = [UIColor colorWithRed:57/255.0 green:203/255.0 blue:138/255.0 alpha:1.0];
     _pageDotColor = [UIColor whiteColor];
-    _bannerImageViewContentMode = UIViewContentModeScaleToFill;
+    _bannerImageViewContentMode = UIViewContentModeScaleAspectFill;
     
     _scrollDirection = UICollectionViewScrollDirectionHorizontal;
-    _itemSizeWidthOffset = 32.f;
-    _itemSizeHeightOffset = 8.f;
-    _cellImageLayerCornerRadius = 6.f;
+    _itemSizeWidthOffset = 48.f;
+    _itemSizeHeightOffset = 24.f;
     
     self.backgroundColor = [UIColor clearColor];
     
@@ -640,22 +637,18 @@ NSString * const ID = @"SDCycleScrollViewCell";
     
     NSString *imagePath = self.imagePathsGroup[itemIndex];
     
-    // 强制使cell定位，防止图片裁剪时imageView frame不对的问题
-    [cell layoutIfNeeded];
     if (!self.onlyDisplayText && [imagePath isKindOfClass:[NSString class]]) {
         if ([imagePath hasPrefix:@"http"]) {
-            [cell.imageView sd_setImageWithURL:[NSURL URLWithString:imagePath] placeholderImage:self.placeholderImage completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
-                cell.imageView.image = [image centerCutWithImageView:cell.imageView];
-            }];
+            [cell.imageView sd_setImageWithURL:[NSURL URLWithString:imagePath] placeholderImage:self.placeholderImage];
         } else {
             UIImage *image = [UIImage imageNamed:imagePath];
             if (!image) {
                 image = [UIImage imageWithContentsOfFile:imagePath];
             }
-            cell.imageView.image = [image centerCutWithImageView:cell.imageView];
+            cell.imageView.image = image;
         }
     } else if (!self.onlyDisplayText && [imagePath isKindOfClass:[UIImage class]]) {
-        cell.imageView.image = [(UIImage *)imagePath centerCutWithImageView:cell.imageView];
+        cell.imageView.image = (UIImage *)imagePath;
     }
     
     if (_titlesGroup.count && itemIndex < _titlesGroup.count) {
@@ -670,7 +663,7 @@ NSString * const ID = @"SDCycleScrollViewCell";
         cell.titleLabelTextFont = self.titleLabelTextFont;
         cell.hasConfigured = YES;
         if (_cycleScrollViewType == SDCycleScrollViewTypeZoomInOut) {
-            cell.imageView.layer.cornerRadius = _cellImageLayerCornerRadius;
+            cell.imageView.layer.cornerRadius = 6.f;
             cell.imageView.layer.masksToBounds = YES;
         }
         cell.imageView.contentMode = self.bannerImageViewContentMode;

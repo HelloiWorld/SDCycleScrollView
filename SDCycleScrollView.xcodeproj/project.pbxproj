@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3D47FD2920888E920036589A /* UIImage+Scale.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D47FD2820888E920036589A /* UIImage+Scale.m */; };
 		3D47FD2C2088901A0036589A /* ZKCollectionViewLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 3D47FD2B2088901A0036589A /* ZKCollectionViewLayout.m */; };
 		48377B901C1027F5007B8C21 /* DemoVCWithXib.m in Sources */ = {isa = PBXBuildFile; fileRef = 48377B8E1C1027F5007B8C21 /* DemoVCWithXib.m */; };
 		48377B911C1027F5007B8C21 /* DemoVCWithXib.xib in Resources */ = {isa = PBXBuildFile; fileRef = 48377B8F1C1027F5007B8C21 /* DemoVCWithXib.xib */; };
@@ -49,8 +48,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		3D47FD2720888E920036589A /* UIImage+Scale.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "UIImage+Scale.h"; path = "../../../../ztcjob-ios/职通车/Main/HomePage/Model/UIImage+Scale.h"; sourceTree = "<group>"; };
-		3D47FD2820888E920036589A /* UIImage+Scale.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = "UIImage+Scale.m"; path = "../../../../ztcjob-ios/职通车/Main/HomePage/Model/UIImage+Scale.m"; sourceTree = "<group>"; };
 		3D47FD2A2088901A0036589A /* ZKCollectionViewLayout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ZKCollectionViewLayout.h; path = "../../../../ztcjob-ios/职通车/Main/HomePage/Model/ZKCollectionViewLayout.h"; sourceTree = "<group>"; };
 		3D47FD2B2088901A0036589A /* ZKCollectionViewLayout.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ZKCollectionViewLayout.m; path = "../../../../ztcjob-ios/职通车/Main/HomePage/Model/ZKCollectionViewLayout.m"; sourceTree = "<group>"; };
 		48377B8D1C1027F5007B8C21 /* DemoVCWithXib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DemoVCWithXib.h; sourceTree = "<group>"; };
@@ -244,8 +241,6 @@
 				990141081AC9420E00D0D74F /* SDCycleScrollView.m */,
 				990141091AC9420E00D0D74F /* UIView+SDExtension.h */,
 				9901410A1AC9420E00D0D74F /* UIView+SDExtension.m */,
-				3D47FD2720888E920036589A /* UIImage+Scale.h */,
-				3D47FD2820888E920036589A /* UIImage+Scale.m */,
 				3D47FD2A2088901A0036589A /* ZKCollectionViewLayout.h */,
 				3D47FD2B2088901A0036589A /* ZKCollectionViewLayout.m */,
 				99E7B30B1AC11F1C009F9A2E /* PageControl */,
@@ -440,7 +435,6 @@
 			files = (
 				9900D17A1ABEB2490077A6CB /* ViewController.m in Sources */,
 				990141031AC941FD00D0D74F /* TADotView.m in Sources */,
-				3D47FD2920888E920036589A /* UIImage+Scale.m in Sources */,
 				990141011AC941FD00D0D74F /* TAAbstractDotView.m in Sources */,
 				6BAA27FD1EFEA798008693AB /* CustomCollectionViewCell.m in Sources */,
 				990141021AC941FD00D0D74F /* TAAnimatedDotView.m in Sources */,
